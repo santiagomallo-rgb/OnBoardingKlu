@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+/* ── Sistema de marca Klu ─────────────────────────────────────────────
+   Paleta tomada del brand guide (klumx.webflow.io):
+   verde bosque (primario), naranja cítrico (acento), gris pizarra (neutros).
+   Tipografía de marca: Google Sans Flex → Figtree como equivalente libre. */
+@theme {
+  --color-forest-50: #dfeff0;
+  --color-forest-100: #afd8d8;
+  --color-forest-200: #7bbfbf;
+  --color-forest-300: #49a6a4;
+  --color-forest-400: #259491;
+  --color-forest-500: #09827d;
+  --color-forest-600: #0b6f6a;
+  --color-forest-700: #096761;
+  --color-forest-800: #0b5752;
+  --color-forest-900: #0b3c36;
+  --color-forest-950: #0a2d27;
+
+  --color-citrus-100: #fde9cb;
+  --color-citrus-300: #fbb754;
+  --color-citrus-500: #f99b1c;
+  --color-citrus-600: #e07d0a;
+
+  --color-slate-brand-50: #f9f9fb;
+  --color-slate-brand-100: #f3f4f6;
+  --color-slate-brand-200: #ebecee;
+  --color-slate-brand-300: #dcddde;
+  --color-slate-brand-400: #b5b6b8;
+  --color-slate-brand-600: #6a6b6c;
+  --color-slate-brand-700: #575759;
+
+  --color-background: #f6f8f8;
+  --color-foreground: #0a2d27;
+
+  --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  --radius-brand-sm: 10px;
+  --radius-brand-md: 20px;
+  --radius-brand-lg: 30px;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+}
+
+/* ── Clases de componentes reutilizables ─────────────────────────────── */
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-full bg-forest-900 px-6 py-3 font-semibold text-white transition hover:bg-forest-800 disabled:opacity-50;
+  }
+  .btn-accent {
+    @apply inline-flex items-center justify-center rounded-full bg-citrus-500 px-6 py-3 font-semibold text-forest-950 transition hover:bg-citrus-600 hover:text-white disabled:opacity-50;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center rounded-full border border-forest-200 bg-white px-5 py-2.5 font-medium text-forest-800 transition hover:border-forest-400 hover:bg-forest-50;
+  }
+  .card {
+    @apply rounded-3xl bg-white border border-slate-brand-200 shadow-[0_2px_16px_-8px_rgba(11,60,54,0.15)];
+  }
+  .input-brand {
+    @apply w-full rounded-xl border border-slate-brand-300 bg-white px-4 py-2.5 text-forest-950 placeholder:text-slate-brand-400 focus:outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-500/20 transition;
+  }
+  .label-brand {
+    @apply text-sm font-semibold text-forest-900;
+  }
+  .eyebrow {
+    @apply text-xs font-bold tracking-[0.18em] text-forest-500 uppercase;
+  }
+}

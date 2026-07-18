@@ -1,0 +1,24 @@
+# Documentación interna confidencial — NO subir al repo.
+# (Los manuales PLA/FT y de Onboarding están marcados "Confidencial".
+#  El contenido ya está reflejado en la config de la app; los PDFs no
+#  hacen falta para el deploy. Borrá esta línea si el repo es privado
+#  y querés conservarlos versionados.)
+Research_Data/
+
+# Dependencias / build (por si algo cae fuera de app/.gitignore)
+node_modules/
+.next/
+out/
+dist/
+
+# Variables de entorno con secretos
+.env
+.env.*
+!.env.example
+
+# Sistema operativo / editores
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/
