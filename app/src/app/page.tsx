@@ -23,21 +23,22 @@ export default function Home() {
           </header>
 
           <div className="py-24 max-w-3xl">
-            <p className="eyebrow text-citrus-300">Onboarding · Multi-país</p>
+            <p className="eyebrow text-citrus-300">Herramienta interna · Grupo Klu</p>
             <h1 className="mt-4 text-5xl sm:text-6xl font-extrabold leading-[1.05] tracking-tight">
-              El sistema de onboarding que tu empresa necesita
+              Panel de Onboarding
             </h1>
             <p className="mt-6 text-lg text-forest-100 leading-relaxed max-w-2xl">
-              Alta de cuentas por capas, datos de personas reutilizables entre
-              productos, invitaciones con verificación de identidad fiscal
-              (CUIT, RFC) y chequeos de cumplimiento PLA/FT — todo en un lugar.
+              Gestión interna del alta de clientes por país: capas de onboarding,
+              datos de personas reutilizables entre productos, invitaciones con
+              verificación de identidad fiscal (CUIT, RFC) y chequeos de
+              cumplimiento PLA/FT.
             </p>
             <div className="mt-10 flex flex-wrap gap-4">
               <Link href="/admin" className="btn-accent text-base">
                 Entrar al panel
               </Link>
               <span className="inline-flex items-center text-sm text-forest-100">
-                ¿Recibiste una invitación? Abrí el link de tu e-mail.
+                ¿Sos cliente y recibiste una invitación? Abrí el link de tu e-mail.
               </span>
             </div>
           </div>

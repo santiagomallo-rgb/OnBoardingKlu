@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Klu · Onboarding",
-  description: "El sistema de onboarding que tu empresa necesita",
+  title: "Klu · Panel de Onboarding",
+  description: "Herramienta interna de Grupo Klu para la gestión del onboarding de clientes",
 };
 
 export default function RootLayout({
