@@ -1,5 +1,6 @@
 import { db } from "./supabase";
-import { getTenant, getLayers, isFieldVisible } from "@/config";
+import { isFieldVisible } from "@/config";
+import type { TenantConfig } from "@/config/types";
 import type { LayerDef, PartyKind } from "@/config/types";
 import { newInviteToken } from "./session";
 import type {
@@ -28,6 +29,7 @@ export async function logEvent(
  */
 export async function createCaseWithInvite(opts: {
   tenantRow: TenantRow;
+  tenant: TenantConfig;
   productId: string;
   kind: PartyKind;
   taxId: string; // ya normalizado y validado
@@ -35,7 +37,7 @@ export async function createCaseWithInvite(opts: {
   displayName: string;
 }): Promise<{ caseId: string; inviteToken: string; partyReused: boolean }> {
   const supa = db();
-  const tenant = getTenant(opts.tenantRow.slug);
+  const tenant = opts.tenant;
 
   const { data: existing } = await supa
     .from("parties")
@@ -113,7 +115,7 @@ export async function createCaseWithInvite(opts: {
  * el vínculo (apoderado / BF / órgano de administración).
  */
 export async function saveStepValues(opts: {
-  tenantSlug: string;
+  tenant: TenantConfig;
   caseRow: CaseRow;
   party: PartyRow;
   layer: LayerDef;
@@ -122,7 +124,7 @@ export async function saveStepValues(opts: {
   peopleValues: Record<string, { entries: PersonEntry[]; role: string; withPct: boolean }>;
 }) {
   const supa = db();
-  const tenant = getTenant(opts.tenantSlug);
+  const tenant = opts.tenant;
 
   for (const [, { entries, role, withPct }] of Object.entries(opts.peopleValues)) {
     for (const person of entries) {
@@ -224,13 +226,13 @@ export function missingFields(layer: LayerDef, data: Record<string, unknown>): s
 
 /** Cierra una capa: valida completitud, actualiza estado y calcula perfil. */
 export async function completeLayer(opts: {
-  tenantSlug: string;
+  tenant: TenantConfig;
   caseRow: CaseRow;
   party: PartyRow;
   layer: LayerDef;
 }): Promise<{ ok: true } | { ok: false; missing: string[] }> {
   const supa = db();
-  const tenant = getTenant(opts.tenantSlug);
+  const tenant = opts.tenant;
   const missing = missingFields(opts.layer, opts.party.data);
   if (missing.length > 0) return { ok: false, missing };
 
@@ -244,7 +246,7 @@ export async function completeLayer(opts: {
     { onConflict: "case_id,layer" }
   );
 
-  const layers = getLayers(opts.tenantSlug, opts.party.kind);
+  const layers = opts.tenant.layers[opts.party.kind];
   const isLast = opts.layer.number >= Math.max(...layers.map((l) => l.number));
   const updates: Record<string, unknown> = {
     updated_at: new Date().toISOString(),
@@ -265,12 +267,12 @@ export async function completeLayer(opts: {
 
 /** Progreso de un caso: por capa, campos requeridos completados / totales. */
 export function layerProgress(
-  tenantSlug: string,
+  tenant: TenantConfig,
   kind: PartyKind,
   data: Record<string, unknown>,
   caseLayers: CaseLayerRow[]
 ): { layer: LayerDef; done: number; total: number; status: string }[] {
-  return getLayers(tenantSlug, kind).map((layer) => {
+  return tenant.layers[kind].map((layer) => {
     let done = 0;
     let total = 0;
     for (const step of layer.steps) {

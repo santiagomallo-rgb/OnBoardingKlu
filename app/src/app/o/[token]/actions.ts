@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { db } from "@/lib/supabase";
 import { createInviteSession, hasInviteSession } from "@/lib/session";
-import { getLayer, isFieldVisible } from "@/config";
+import { isFieldVisible } from "@/config";
 import { completeLayer, logEvent, saveStepValues } from "@/lib/onboarding";
 import type { PersonEntry } from "@/lib/types";
 import { loadInviteContext, inviteUsable } from "./shared";
@@ -104,7 +104,7 @@ export async function saveStepAction(
     return { error: "Este trámite ya fue resuelto y no admite cambios. Contactá a tu asesor." };
   }
 
-  const layer = getLayer(ctx.tenantRow.slug, ctx.party.kind, layerNumber);
+  const layer = ctx.tenant.layers[ctx.party.kind].find((l) => l.number === layerNumber);
   const step = layer?.steps.find((s) => s.key === stepKey);
   if (!layer || !step) return { error: "Paso inválido." };
 
@@ -195,7 +195,7 @@ export async function saveStepAction(
 
   try {
     await saveStepValues({
-      tenantSlug: ctx.tenantRow.slug,
+      tenant: ctx.tenant,
       caseRow: ctx.caseRow,
       party: ctx.party,
       layer,
@@ -217,7 +217,7 @@ export async function saveStepAction(
   const fresh = await loadInviteContext(token);
   if (!fresh) return { error: "Invitación inválida." };
   const result = await completeLayer({
-    tenantSlug: fresh.tenantRow.slug,
+    tenant: fresh.tenant,
     caseRow: fresh.caseRow,
     party: fresh.party,
     layer,

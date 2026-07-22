@@ -1,5 +1,5 @@
 import { db } from "@/lib/supabase";
-import { getTenant } from "@/config";
+import { resolveTenantConfig } from "@/lib/config-db";
 import type { TenantConfig } from "@/config/types";
 import type { CaseRow, InviteRow, PartyRow, ProductRow, TenantRow } from "@/lib/types";
 
@@ -34,13 +34,17 @@ export async function loadInviteContext(token: string): Promise<InviteContext | 
   ]);
   if (!party) return null;
 
+  // La config del país sale del código (AR/MX) o se deriva de los requisitos
+  // de cumplimiento cargados en el producto desde el panel.
+  const tenant = await resolveTenantConfig(tenantRow, caseRow.product_id);
+
   return {
     invite,
     caseRow,
     party,
     product: product ?? null,
     tenantRow,
-    tenant: getTenant(tenantRow.slug),
+    tenant,
   };
 }
 

@@ -4,9 +4,19 @@ export interface TenantRow {
   id: string;
   slug: string;
   name: string;
+  legal_name?: string | null;
   country_code: string;
   tax_id_type: string;
   currency: string;
+  locale?: string;
+  active?: boolean;
+  // Config editable desde el panel (migración 20260721000001)
+  tax_id_label?: string | null;
+  tax_id_placeholder?: string | null;
+  tax_id_help?: string | null;
+  flag?: string | null;
+  welcome_title?: string | null;
+  welcome_body?: string | null;
 }
 
 export interface ProductRow {
@@ -17,6 +27,32 @@ export interface ProductRow {
   tagline: string | null;
   description: string | null;
   active: boolean;
+}
+
+/** Campo/documento/control que hay que cumplir por cumplimiento para un producto. */
+export interface ProductRequirementRow {
+  id: string;
+  tenant_id: string;
+  product_id: string;
+  code: string;
+  label: string;
+  help: string | null;
+  category: "dato" | "documento" | "declaracion" | "control";
+  field_type:
+    | "text"
+    | "date"
+    | "select"
+    | "email"
+    | "phone"
+    | "number"
+    | "textarea"
+    | "boolean"
+    | "people"
+    | "file";
+  applies_to: "human" | "legal" | "both";
+  required: boolean;
+  options: { value: string; label: string }[];
+  sort_order: number;
 }
 
 export interface PartyRow {

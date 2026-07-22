@@ -45,14 +45,16 @@ async function main() {
 
   // 2) Alta de caso + invitación
   const r1 = await createCaseWithInvite({
-    tenantRow, productId: product.id, kind: "human",
+    tenantRow,
+    tenant, productId: product.id, kind: "human",
     taxId, email: "demo@grupoklu.com", displayName: "María Demo",
   });
   console.log("2) Caso creado:", r1);
 
   // 3) Segundo caso con el MISMO CUIT → la persona se reutiliza
   const r2 = await createCaseWithInvite({
-    tenantRow, productId: product.id, kind: "human",
+    tenantRow,
+    tenant, productId: product.id, kind: "human",
     taxId, email: "demo@grupoklu.com", displayName: "María Demo",
   });
   console.log("3) Segundo caso (misma persona):", { partyReused: r2.partyReused });
@@ -82,12 +84,12 @@ async function main() {
   for (const step of layer1.steps) {
     const { caseRow, party } = await load();
     await saveStepValues({
-      tenantSlug: "ar", caseRow, party, layer: layer1, stepKey: step.key,
+      tenant, caseRow, party, layer: layer1, stepKey: step.key,
       values: stepData[step.key] ?? {}, peopleValues: {},
     });
   }
   let ctx = await load();
-  const done1 = await completeLayer({ tenantSlug: "ar", caseRow: ctx.caseRow, party: ctx.party, layer: layer1 });
+  const done1 = await completeLayer({ tenant, caseRow: ctx.caseRow, party: ctx.party, layer: layer1 });
   console.log("4) Capa 1 completada:", done1);
   if (!done1.ok) throw new Error("FALLO capa 1: " + JSON.stringify(done1));
 
@@ -95,12 +97,12 @@ async function main() {
   const layer2 = getLayer("ar", "human", 2)!;
   ctx = await load();
   await saveStepValues({
-    tenantSlug: "ar", caseRow: ctx.caseRow, party: ctx.party, layer: layer2, stepKey: "ingresos",
+    tenant, caseRow: ctx.caseRow, party: ctx.party, layer: layer2, stepKey: "ingresos",
     values: { tipo_ingreso: "relacion_dependencia", neto_mensual: 1500000, volumen_mensual_esperado: 2000000 },
     peopleValues: {},
   });
   ctx = await load();
-  const done2 = await completeLayer({ tenantSlug: "ar", caseRow: ctx.caseRow, party: ctx.party, layer: layer2 });
+  const done2 = await completeLayer({ tenant, caseRow: ctx.caseRow, party: ctx.party, layer: layer2 });
   ctx = await load();
   console.log("5) Capa 2 completada:", done2, "→ perfil:", ctx.caseRow.transactional_profile);
   const profile = ctx.caseRow.transactional_profile as { annualAmount?: number };
@@ -116,14 +118,15 @@ async function main() {
     await supa.from("parties").delete().eq("id", prevPj.id);
   }
   const r3 = await createCaseWithInvite({
-    tenantRow, productId: product.id, kind: "legal",
+    tenantRow,
+    tenant, productId: product.id, kind: "legal",
     taxId: cuitPj, email: "empresa@grupoklu.com", displayName: "Demo Comercio SAS",
   });
   const { data: cPj } = await supa.from("onboarding_cases").select("*").eq("id", r3.caseId).single<CaseRow>();
   const { data: pPj } = await supa.from("parties").select("*").eq("id", cPj!.party_id).single<PartyRow>();
   const layerPj = getLayer("ar", "legal", 1)!;
   await saveStepValues({
-    tenantSlug: "ar", caseRow: cPj!, party: pPj!, layer: layerPj, stepKey: "personas",
+    tenant, caseRow: cPj!, party: pPj!, layer: layerPj, stepKey: "personas",
     values: { beneficiarios_finales: [{ nombre: "María Demo", tax_id: taxId, pct: 60 }] },
     peopleValues: {
       beneficiarios_finales: {
@@ -138,7 +141,7 @@ async function main() {
   // 7) Progreso
   const { data: layersRows } = await supa.from("case_layers").select("*").eq("case_id", r1.caseId);
   ctx = await load();
-  console.log("7) Progreso PH:", layerProgress("ar", "human", ctx.party.data, (layersRows ?? []) as never).map((p) => `${p.layer.number}: ${p.done}/${p.total} ${p.status}`));
+  console.log("7) Progreso PH:", layerProgress(tenant, "human", ctx.party.data, (layersRows ?? []) as never).map((p) => `${p.layer.number}: ${p.done}/${p.total} ${p.status}`));
 
   // Token del invite para probar el gate por HTTP
   console.log("INVITE_TOKEN=" + r1.inviteToken);

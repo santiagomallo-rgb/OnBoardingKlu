@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { hasInviteSession } from "@/lib/session";
-import { getLayers } from "@/config";
 import { layerProgress } from "@/lib/onboarding";
 import { db } from "@/lib/supabase";
 import { KluLogo } from "@/components/Logo";
@@ -45,8 +44,8 @@ export default async function WizardPage({
     .eq("case_id", ctx.caseRow.id);
   const layerRows = (layerRowsData ?? []) as CaseLayerRow[];
 
-  const layers = getLayers(ctx.tenantRow.slug, ctx.party.kind);
-  const progress = layerProgress(ctx.tenantRow.slug, ctx.party.kind, ctx.party.data, layerRows);
+  const layers = ctx.tenant.layers[ctx.party.kind];
+  const progress = layerProgress(ctx.tenant, ctx.party.kind, ctx.party.data, layerRows);
 
   const resolved = ["approved", "rejected", "blocked"].includes(ctx.caseRow.status);
   if (resolved) {

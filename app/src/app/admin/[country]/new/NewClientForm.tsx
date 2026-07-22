@@ -13,40 +13,23 @@ export interface TenantOption {
   products: { id: string; name: string; tagline: string | null }[];
 }
 
-export default function NewClientForm({ tenants }: { tenants: TenantOption[] }) {
+export default function NewClientForm({ tenant }: { tenant: TenantOption }) {
   const [state, formAction, pending] = useActionState(createClientAction, null);
-  const [tenantSlug, setTenantSlug] = useState(tenants[0]?.slug ?? "");
   const [kind, setKind] = useState<"human" | "legal">("human");
-  const tenant = tenants.find((t) => t.slug === tenantSlug);
 
   return (
     <form action={formAction} className="card p-7 space-y-6">
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-1.5">
-          <label className="label-brand">País / Entidad</label>
-          <select
-            name="tenant"
-            value={tenantSlug}
-            onChange={(e) => setTenantSlug(e.target.value)}
-            className="input-brand"
-          >
-            {tenants.map((t) => (
-              <option key={t.slug} value={t.slug}>
-                {t.countryName} — {t.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-1.5">
-          <label className="label-brand">Producto</label>
-          <select name="product" className="input-brand" key={tenantSlug}>
-            {tenant?.products.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-        </div>
+      <input type="hidden" name="tenant" value={tenant.slug} />
+
+      <div className="space-y-1.5">
+        <label className="label-brand">Producto</label>
+        <select name="product" className="input-brand">
+          {tenant.products.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="space-y-1.5">
@@ -89,9 +72,9 @@ export default function NewClientForm({ tenants }: { tenants: TenantOption[] }) 
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
-          <label className="label-brand">{tenant?.taxIdLabel ?? "Identificación fiscal"}</label>
-          <input name="tax_id" required placeholder={tenant?.taxIdPlaceholder} className="input-brand font-mono" />
-          <p className="text-xs text-slate-brand-400">{tenant?.taxIdHelp}</p>
+          <label className="label-brand">{tenant.taxIdLabel}</label>
+          <input name="tax_id" required placeholder={tenant.taxIdPlaceholder} className="input-brand font-mono" />
+          <p className="text-xs text-slate-brand-400">{tenant.taxIdHelp}</p>
         </div>
         <div className="space-y-1.5">
           <label className="label-brand">E-mail del cliente</label>

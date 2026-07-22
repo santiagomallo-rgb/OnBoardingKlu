@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { hasInviteSession } from "@/lib/session";
-import { getLayers } from "@/config";
 import { KluLogo } from "@/components/Logo";
 import { loadInviteContext } from "../shared";
 
@@ -21,7 +20,7 @@ export default async function DonePage({
   const ctx = await loadInviteContext(token);
   if (!ctx) notFound();
 
-  const layers = getLayers(ctx.tenantRow.slug, ctx.party.kind);
+  const layers = ctx.tenant.layers[ctx.party.kind];
   const completedNumber = Number(l ?? 1);
   const completed = layers.find((ly) => ly.number === completedNumber);
   const next = layers.find((ly) => ly.number === completedNumber + 1);

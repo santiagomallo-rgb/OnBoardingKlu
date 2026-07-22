@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/supabase";
-import { getTenant, getLayers, isFieldVisible } from "@/config";
+import { isFieldVisible } from "@/config";
+import { resolveTenantConfig } from "@/lib/config-db";
 import { layerProgress } from "@/lib/onboarding";
 import { baseUrl } from "@/lib/email";
 import type {
@@ -99,12 +100,12 @@ export default async function CaseDetailPage({
   ]);
 
   if (!party || !tenantRow) notFound();
-  const tenant = getTenant(tenantRow.slug);
+  const tenant = await resolveTenantConfig(tenantRow, caseRow.product_id);
   const checkRows = (checks ?? []) as CheckRow[];
   const inviteRows = (invites ?? []) as InviteRow[];
   const layerRows = (layers ?? []) as CaseLayerRow[];
   const eventRows = (events ?? []) as EventRow[];
-  const progress = layerProgress(tenantRow.slug, party.kind, party.data, layerRows);
+  const progress = layerProgress(tenant, party.kind, party.data, layerRows);
   const activeInvite = inviteRows.find((i) => !["expired", "revoked"].includes(i.status));
   const inviteLink = activeInvite ? `${baseUrl()}/o/${activeInvite.token}` : null;
 
@@ -205,7 +206,7 @@ export default async function CaseDetailPage({
               <p className="text-sm text-slate-brand-400">El cliente todavía no cargó datos.</p>
             ) : (
               <dl className="grid sm:grid-cols-2 gap-x-6 gap-y-2.5 text-sm">
-                {getLayers(tenantRow.slug, party.kind).flatMap((layer) =>
+                {tenant.layers[party.kind].flatMap((layer) =>
                   layer.steps.flatMap((step) =>
                     step.fields
                       .filter((f) => isFieldVisible(f, party.data) && party.data[f.key] != null && party.data[f.key] !== "")

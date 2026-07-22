@@ -1,7 +1,12 @@
 import Link from "next/link";
 import { KluLogo } from "@/components/Logo";
+import { listTenants } from "@/lib/config-db";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const tenants = await listTenants();
+
   return (
     <main className="flex-1 flex flex-col">
       {/* Hero de marca */}
@@ -42,6 +47,53 @@ export default function Home() {
               </span>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Selector de país — a qué panel entrar */}
+      <section className="max-w-5xl mx-auto px-6 pt-16">
+        <div className="text-center">
+          <p className="eyebrow">Elegí tu operación</p>
+          <h2 className="text-3xl font-extrabold text-forest-950 mt-2">
+            ¿A qué panel querés entrar?
+          </h2>
+          <p className="text-slate-brand-600 mt-2">
+            Cada país tiene su propia normativa, sus productos y sus casos.
+          </p>
+        </div>
+
+        <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {tenants.map((t) => (
+            <Link
+              key={t.id}
+              href={`/admin/${t.slug}`}
+              className="card p-6 hover:border-forest-400 hover:shadow-md transition group"
+            >
+              <span className="text-4xl">{t.flag ?? "🌎"}</span>
+              <h3 className="text-lg font-extrabold text-forest-950 mt-3 group-hover:text-forest-700 transition">
+                {t.name}
+              </h3>
+              <p className="text-sm text-slate-brand-600 mt-1">
+                {t.tax_id_label || t.tax_id_type} · {t.currency}
+              </p>
+              <p className="mt-4 text-sm font-bold text-forest-700 group-hover:text-forest-900">
+                Entrar al panel →
+              </p>
+            </Link>
+          ))}
+
+          <Link
+            href="/admin"
+            className="rounded-3xl border-2 border-dashed border-slate-brand-300 p-6 flex flex-col items-center justify-center text-center hover:border-forest-400 hover:bg-forest-50/40 transition group"
+          >
+            <span className="text-3xl text-slate-brand-300 group-hover:text-forest-500 transition">
+              +
+            </span>
+            <p className="mt-2 font-bold text-forest-950">Agregar un país</p>
+            <p className="text-xs text-slate-brand-500 mt-1">
+              Configurá una operación nueva desde el panel
+            </p>
+          </Link>
         </div>
       </section>
 

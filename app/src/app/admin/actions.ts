@@ -9,7 +9,7 @@ import {
   destroyAdminSession,
   isAdmin,
 } from "@/lib/session";
-import { getTenant } from "@/config";
+import { resolveTenantConfig } from "@/lib/config-db";
 import { createCaseWithInvite, logEvent } from "@/lib/onboarding";
 import { sendInviteEmail } from "@/lib/email";
 import type { InviteRow, PartyRow, ProductRow, TenantRow } from "@/lib/types";
@@ -61,35 +61,31 @@ export async function createClientAction(
     return { error: "Completá todos los campos." };
   }
 
-  let tenant;
-  try {
-    tenant = getTenant(tenantSlug);
-  } catch {
-    return { error: "País inválido." };
-  }
-
-  const taxCheck = tenant.validateTaxId(taxIdRaw);
-  if (!taxCheck.ok) return { error: taxCheck.error };
-
   const { data: tenantRow } = await supa
     .from("tenants")
     .select("*")
     .eq("slug", tenantSlug)
-    .single<TenantRow>();
-  if (!tenantRow) return { error: "El tenant no existe en la base. Corré el seed." };
+    .maybeSingle<TenantRow>();
+  if (!tenantRow) return { error: "País inválido." };
 
   const { data: product } = await supa
     .from("products")
     .select("*")
     .eq("id", productId)
     .eq("tenant_id", tenantRow.id)
-    .single<ProductRow>();
+    .maybeSingle<ProductRow>();
   if (!product) return { error: "Producto inválido para ese país." };
+
+  const tenant = await resolveTenantConfig(tenantRow, productId);
+
+  const taxCheck = tenant.validateTaxId(taxIdRaw);
+  if (!taxCheck.ok) return { error: taxCheck.error };
 
   let result;
   try {
     result = await createCaseWithInvite({
       tenantRow,
+      tenant,
       productId,
       kind,
       taxId: taxCheck.normalized,
@@ -118,7 +114,7 @@ export async function createClientAction(
     "admin"
   );
 
-  redirect(`/admin/cases/${result.caseId}`);
+  redirect(`/admin/${tenantSlug}/cases/${result.caseId}`);
 }
 
 // ── Reenviar invitación ──────────────────────────────────────────────────
@@ -158,7 +154,7 @@ export async function resendInviteAction(formData: FormData) {
     .eq("id", caseRow.product_id)
     .single<ProductRow>();
 
-  const tenant = getTenant(tenantRow.slug);
+  const tenant = await resolveTenantConfig(tenantRow, caseRow.product_id);
   const sendResult = await sendInviteEmail({
     tenant,
     to: invite.email,
@@ -170,7 +166,7 @@ export async function resendInviteAction(formData: FormData) {
     await supa.from("invites").update({ status: "sent" }).eq("id", invite.id);
   }
   await logEvent(caseRow.id, sendResult.sent ? "invite_resent" : "invite_resend_failed", { error: sendResult.error }, "admin");
-  revalidatePath(`/admin/cases/${caseRow.id}`);
+  revalidatePath(`/admin/${tenantRow.slug}/cases/${caseRow.id}`);
 }
 
 // ── Chequeos de cumplimiento ─────────────────────────────────────────────
@@ -201,7 +197,7 @@ export async function updateCheckAction(formData: FormData) {
   if (status === "blocked") {
     await supa.from("onboarding_cases").update({ status: "blocked", updated_at: new Date().toISOString() }).eq("id", caseId);
   }
-  revalidatePath(`/admin/cases/${caseId}`);
+  revalidatePath("/admin", "layout");
 }
 
 // ── Riesgo y decisión ────────────────────────────────────────────────────
@@ -214,7 +210,7 @@ export async function setRiskAction(formData: FormData) {
   if (!["low", "medium", "high"].includes(risk)) return;
   await supa.from("onboarding_cases").update({ risk_level: risk, updated_at: new Date().toISOString() }).eq("id", caseId);
   await logEvent(caseId, "risk_set", { risk }, "admin");
-  revalidatePath(`/admin/cases/${caseId}`);
+  revalidatePath("/admin", "layout");
 }
 
 export async function decideCaseAction(formData: FormData) {
@@ -229,5 +225,5 @@ export async function decideCaseAction(formData: FormData) {
     .update({ status: decision, notes: notes || null, updated_at: new Date().toISOString() })
     .eq("id", caseId);
   await logEvent(caseId, "case_decided", { decision }, "admin");
-  revalidatePath(`/admin/cases/${caseId}`);
+  revalidatePath("/admin", "layout");
 }
