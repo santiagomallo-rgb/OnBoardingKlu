@@ -400,7 +400,7 @@ function computeProfile(kind: PartyKind, data: Record<string, unknown>): Profile
 
 export const AR: TenantConfig = {
   slug: "ar",
-  name: "SimplePay Argentina",
+  name: "Argentina",
   countryCode: "AR",
   countryName: "Argentina",
   taxIdType: "CUIT",

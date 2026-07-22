@@ -1,10 +1,8 @@
 import type { TenantConfig, PartyKind, LayerDef, FieldDef } from "./types";
 import { AR } from "./tenants/ar";
-import { MX } from "./tenants/mx";
 
 export const TENANTS: Record<string, TenantConfig> = {
   [AR.slug]: AR,
-  [MX.slug]: MX,
 };
 
 export function getTenant(slug: string): TenantConfig {
